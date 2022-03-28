@@ -2,9 +2,9 @@ package log
 
 import (
 	"fmt"
-	"gLog/base"
-	"gLog/logrus"
 	"io"
+	"log/base"
+	"log/logrus"
 	"os"
 	"sync"
 )

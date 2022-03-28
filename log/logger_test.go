@@ -1,7 +1,7 @@
 package log
 
 import (
-	"gLog/base"
+	"log/base"
 	"os"
 	"testing"
 )

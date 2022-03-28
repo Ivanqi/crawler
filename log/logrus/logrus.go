@@ -1,9 +1,9 @@
 package logrus
 
 import (
-	"gLog/base"
-	"gLog/field"
 	"io"
+	"log/base"
+	"log/field"
 	"os"
 
 	"github.com/sirupsen/logrus"
