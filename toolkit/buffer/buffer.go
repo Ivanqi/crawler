@@ -1,5 +1,12 @@
 package buffer
 
+import (
+	"crawler/errors"
+	"fmt"
+	"sync"
+	"sync/atomic"
+)
+
 // Buffer 代表FIFO的缓冲器的接口类型
 type Buffer interface {
 	// Cap 用于获取本缓冲器的容量
@@ -38,8 +45,8 @@ func NewBuffer(size uint32) (Buffer, error) {
 		return nil, errors.NewIllegalParameterError(errMsg)
 	}
 
-	return &myBuffer {
-		ch: make(chan interface{}, size)
+	return &myBuffer{
+		ch: make(chan interface{}, size),
 	}, nil
 }
 
@@ -82,7 +89,7 @@ func (buf *myBuffer) Get() (interface{}, error) {
 }
 
 func (buf *myBuffer) Close() bool {
-	if atmoic.CompareAndSwapUint32(&buf.closed, 0, 1) {
+	if atomic.CompareAndSwapUint32(&buf.closed, 0, 1) {
 		buf.closingLock.Lock()
 		close(buf.ch)
 		buf.closingLock.Unlock()
@@ -92,7 +99,7 @@ func (buf *myBuffer) Close() bool {
 }
 
 func (buf *myBuffer) Closed() bool {
-	if atmoic.LoadUint32(&buf.closed) == 0 {
+	if atomic.LoadUint32(&buf.closed) == 0 {
 		return false
 	}
 	return true

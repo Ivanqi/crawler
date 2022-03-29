@@ -1,6 +1,6 @@
 package buffer
 
-import "error"
+import "errors"
 
 // ErrClosedBufferPool 表示缓冲池已经关闭的错误的变量
 var ErrClosedBufferPool = errors.New("closed buffer pool")

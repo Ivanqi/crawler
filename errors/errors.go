@@ -1,7 +1,10 @@
 package errors
 
-import "strings"
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
 
 // ErrorType 代表错误类型
 type ErrorType string
@@ -38,15 +41,15 @@ type myCrawlerError struct {
 
 // NewCrawlerError 用于创建一个新的爬虫错误值
 func NewCrawlerError(errType ErrorType, errMsg string) CrawlerError {
-	return &myCrawlerError {
-		errType: errType
-		errMsg: strings.TrimSpace(errMsg)
+	return &myCrawlerError{
+		errType: errType,
+		errMsg:  strings.TrimSpace(errMsg),
 	}
 }
 
 // NewCrawlerErrorBy 用于根据给定的错误值创建一个新的爬虫错误值
 func NewCrawlerErrorBy(errType ErrorType, err error) CrawlerError {
-	return NewCrawlerError(errType, err.Error)
+	return NewCrawlerError(errType, err.Error())
 }
 
 // genFullErrMsg 用于生成错误信息，并给相应的字段赋值
@@ -82,8 +85,8 @@ type IllegalParameterError struct {
 
 // NewIllegalParameterError 会创建一个 llegalParameterError 类型的实例
 func NewIllegalParameterError(errMsg string) IllegalParameterError {
-	return IllegalParameterError {
-		msg: fmt.Sprintf("illegal parameter(非法参数): %s", strings.TrimSpace(errMsg))
+	return IllegalParameterError{
+		msg: fmt.Sprintf("illegal parameter(非法参数): %s", strings.TrimSpace(errMsg)),
 	}
 }
 

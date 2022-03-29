@@ -1,3 +1,3 @@
 module crawler
 
-go 1.16.7
+go 1.16
