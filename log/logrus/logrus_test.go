@@ -1,8 +1,8 @@
 package logrus
 
 import (
-	"gLog/base"
-	"gLog/field"
+	"log/base"
+	"log/field"
 	"os"
 	"testing"
 )

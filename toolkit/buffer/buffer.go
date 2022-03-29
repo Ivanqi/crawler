@@ -50,3 +50,50 @@ func (buf *myBuffer) Cap() uint32 {
 func (buf *myBuffer) Len() uint32 {
 	return uint32(len(buf.ch))
 }
+
+func (buf *myBuffer) Put(datum interface{}) (ok bool, err error) {
+	buf.closingLock.RLock()
+	defer buf.closingLock.RUnlock()
+
+	if buf.Closed() {
+		return false, ErrClosedBuffer
+	}
+
+	select {
+	case buf.ch <- datum:
+		ok = true
+	default:
+		ok = false
+	}
+
+	return
+}
+
+func (buf *myBuffer) Get() (interface{}, error) {
+	select {
+	case datum, ok := <-buf.ch:
+		if !ok {
+			return nil, ErrClosedBuffer
+		}
+		return datum, nil
+	default:
+		return nil, nil
+	}
+}
+
+func (buf *myBuffer) Close() bool {
+	if atmoic.CompareAndSwapUint32(&buf.closed, 0, 1) {
+		buf.closingLock.Lock()
+		close(buf.ch)
+		buf.closingLock.Unlock()
+		return true
+	}
+	return false
+}
+
+func (buf *myBuffer) Closed() bool {
+	if atmoic.LoadUint32(&buf.closed) == 0 {
+		return false
+	}
+	return true
+}
