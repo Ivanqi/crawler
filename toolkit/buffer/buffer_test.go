@@ -14,7 +14,7 @@ func TestBufferNew(t *testing.T) {
 	buf, err := NewBuffer(size)
 
 	if err != nil {
-		t.Fatalf("新建缓冲区时出错：%s (大小：%d)", err, size)
+		t.Fatalf("新建缓冲器时出错：%s (大小：%d)", err, size)
 	}
 
 	if buf == nil {
@@ -22,7 +22,7 @@ func TestBufferNew(t *testing.T) {
 	}
 
 	if buf.Cap() != size {
-		t.Fatalf("缓冲区上限不一致，预期为: %d, 实际为 %d", size, buf.Cap())
+		t.Fatalf("缓冲器上限不一致，预期为: %d, 实际为 %d", size, buf.Cap())
 	}
 
 	buf, err = NewBuffer(0)
@@ -35,7 +35,7 @@ func TestBufferPut(t *testing.T) {
 	size := uint32(10)
 	buf, err := NewBuffer(size)
 	if err != nil {
-		t.Fatalf("新建缓冲区出错: %s (大小: %d)", err, size)
+		t.Fatalf("新建缓冲器出错: %s (大小: %d)", err, size)
 	}
 
 	data := make([]uint32, size)
@@ -48,7 +48,7 @@ func TestBufferPut(t *testing.T) {
 	for _, datum = range data {
 		ok, err := buf.Put(datum)
 		if err != nil {
-			t.Fatalf("将数据放入缓冲区时出错: %s, (datum: %d)", err, datum)
+			t.Fatalf("将数据放入缓冲器时出错: %s, (datum: %d)", err, datum)
 		}
 
 		if !ok {
@@ -56,7 +56,7 @@ func TestBufferPut(t *testing.T) {
 		}
 		count++
 		if buf.Len() != count {
-			t.Fatalf("缓冲区Len 不一致. 预期: %d, 实际: %d", count, buf.Len())
+			t.Fatalf("缓冲器Len 不一致. 预期: %d, 实际: %d", count, buf.Len())
 		}
 	}
 
@@ -73,7 +73,7 @@ func TestBufferPut(t *testing.T) {
 	buf.Close()
 	_, err = buf.Put(datum)
 	if err == nil {
-		t.Fatalf("它仍然可以将datum放入关闭缓冲区! (datum: %d)", datum)
+		t.Fatalf("它仍然可以将datum放入关闭缓冲器! (datum: %d)", datum)
 	}
 }
 
@@ -82,7 +82,7 @@ func TestBufferPutInParallel(t *testing.T) {
 	bufferSize := uint32(20)
 	buf, err := NewBuffer(bufferSize)
 	if err != nil {
-		t.Fatalf("新建缓冲区时出错：%s (大小：%d)", err, size)
+		t.Fatalf("新建缓冲器时出错：%s (大小：%d)", err, size)
 	}
 
 	data := make([]uint32, size)
@@ -95,11 +95,11 @@ func TestBufferPutInParallel(t *testing.T) {
 			t.Parallel()
 			ok, err := buf.Put(datum)
 			if err != nil {
-				t.Fatalf("将datum放入缓冲区时出错: %s (datum: %d)", err, datum)
+				t.Fatalf("将datum放入缓冲器时出错: %s (datum: %d)", err, datum)
 			}
 
 			if !ok && buf.Len() < buf.Cap() {
-				t.Fatalf("不能把 datum 存入 缓冲区! (datum: %d)", datum)
+				t.Fatalf("不能把 datum 存入 缓冲器! (datum: %d)", datum)
 			}
 		}
 	}
@@ -117,7 +117,7 @@ func TestBufferPutInParallel(t *testing.T) {
 	})
 
 	if buf.Len() != buf.Cap() {
-		t.Fatalf("缓冲区Len 不一致，预期: %d, 实际: %d", buf.Cap(), buf.Len())
+		t.Fatalf("缓冲器Len 不一致，预期: %d, 实际: %d", buf.Cap(), buf.Len())
 	}
 }
 
@@ -125,7 +125,7 @@ func TestBufferGet(t *testing.T) {
 	size := uint32(10)
 	buf, err := NewBuffer(size)
 	if err != nil {
-		t.Fatalf("新建缓冲区时出错：%s (大小：%d)", err, size)
+		t.Fatalf("新建缓冲器时出错：%s (大小：%d)", err, size)
 	}
 
 	for i := uint32(0); i < size; i++ {
@@ -138,7 +138,7 @@ func TestBufferGet(t *testing.T) {
 	for i := uint32(0); i < size; i++ {
 		d, err := buf.Get()
 		if err != nil {
-			t.Fatalf("从缓冲区获取datum出错: %s", err)
+			t.Fatalf("从缓冲器获取datum出错: %s", err)
 		}
 		datum, ok = d.(uint32)
 		if !ok {
@@ -151,17 +151,17 @@ func TestBufferGet(t *testing.T) {
 		count--
 
 		if buf.Len() != count {
-			t.Fatalf("缓冲区Len 不一致. 预期: %d, 实际: %d", count, buf.Len())
+			t.Fatalf("缓冲器Len 不一致. 预期: %d, 实际: %d", count, buf.Len())
 		}
 	}
 
 	d, err := buf.Get()
 	if err != nil {
-		t.Fatalf("从缓冲区中获取数据失败: %s", err)
+		t.Fatalf("从缓冲器中获取数据失败: %s", err)
 	}
 
 	if d != nil {
-		t.Fatalf("它仍然可以从空缓冲区中获取数据!")
+		t.Fatalf("它仍然可以从空缓冲器中获取数据!")
 	}
 
 	datum = 0
@@ -170,12 +170,12 @@ func TestBufferGet(t *testing.T) {
 
 	_, err = buf.Get()
 	if err != nil {
-		t.Fatalf("从缓冲区获取日期时出错: %s", err)
+		t.Fatalf("从缓冲器获取日期时出错: %s", err)
 	}
 
 	_, err = buf.Get()
 	if err == nil {
-		t.Fatal("它仍然可以从封闭的缓冲区中获取数据!")
+		t.Fatal("它仍然可以从封闭的缓冲器中获取数据!")
 	}
 }
 
@@ -183,7 +183,7 @@ func TestBufferPutAndGetInParallel(t *testing.T) {
 	bufferSize := uint32(50)
 	buf, err := NewBuffer(bufferSize)
 	if err != nil {
-		t.Fatalf("新建缓冲区时出错：%s (大小：%d)", err, bufferSize)
+		t.Fatalf("新建缓冲器时出错：%s (大小：%d)", err, bufferSize)
 	}
 
 	maxPuttingNumber := bufferSize + uint32(rand.Int31n(20))
@@ -203,11 +203,11 @@ func TestBufferPutAndGetInParallel(t *testing.T) {
 			for i := begin; i < end; i++ {
 				ok, err := buf.Put(i)
 				if err != nil {
-					t.Fatalf("将数据放入缓冲区出错: %s (数据: %d)", err, i)
+					t.Fatalf("将数据放入缓冲器出错: %s (数据: %d)", err, i)
 				}
 
 				if !ok && atomic.LoadUint32(&gettingCount) == 0 && buf.Len() < buf.Cap() {
-					t.Fatalf("无法将数据放入缓冲区! (数据: %d)", i)
+					t.Fatalf("无法将数据放入缓冲器! (数据: %d)", i)
 				}
 
 				atomic.AddUint32(&puttingCount, ^uint32(0))
@@ -221,11 +221,11 @@ func TestBufferPutAndGetInParallel(t *testing.T) {
 			for i := begin; i < end; i++ {
 				ok, err := buf.Put(i)
 				if err != nil {
-					t.Fatalf("将数据放入缓冲区出错: %s, (数据: %d)", err, i)
+					t.Fatalf("将数据放入缓冲器出错: %s, (数据: %d)", err, i)
 				}
 
 				if !ok && atomic.LoadUint32(&gettingCount) == 0 && buf.Len() < buf.Cap() {
-					t.Fatalf("无法将数据放入缓冲区! (数据: %d)", i)
+					t.Fatalf("无法将数据放入缓冲器! (数据: %d)", i)
 				}
 
 				atomic.AddUint32(&puttingCount, ^uint32(0))
@@ -238,7 +238,7 @@ func TestBufferPutAndGetInParallel(t *testing.T) {
 			for i := uint32(0); i < max; i++ {
 				d, err := buf.Get()
 				if err != nil {
-					t.Fatalf("从缓冲区获取数据出错: %s", err)
+					t.Fatalf("从缓冲器获取数据出错: %s", err)
 				}
 
 				if d == nil && atomic.LoadUint32(&puttingCount) == 0 && buf.Len() != 0 {
@@ -261,7 +261,7 @@ func TestBufferPutAndGetInParallel(t *testing.T) {
 			for i := uint32(0); i < max; i++ {
 				d, err := buf.Get()
 				if err != nil {
-					t.Fatalf("从缓冲区获取数据出错: %s", err)
+					t.Fatalf("从缓冲器获取数据出错: %s", err)
 				}
 
 				if d == nil && atomic.LoadUint32(&puttingCount) == 0 && buf.Len() != 0 {
@@ -290,7 +290,7 @@ func TestBufferCloseInParallel(t *testing.T) {
 	bufferSize := uint32(100)
 	buf, err := NewBuffer(bufferSize)
 	if err != nil {
-		t.Fatalf("新建缓冲区时出错：%s (大小：%d)", err, bufferSize)
+		t.Fatalf("新建缓冲器时出错：%s (大小：%d)", err, bufferSize)
 	}
 	maxNumber := bufferSize + uint32(rand.Int31n(100))
 	t.Run("Put", func(t *testing.T) {
@@ -298,10 +298,10 @@ func TestBufferCloseInParallel(t *testing.T) {
 		for i := uint32(0); i < maxNumber; i++ {
 			_, err := buf.Put(i)
 			if err != nil && !buf.Closed() {
-				t.Fatalf("将数据放入缓冲区出错: %s, (数据: %d)", err, i)
+				t.Fatalf("将数据放入缓冲器出错: %s, (数据: %d)", err, i)
 			}
 			if err == nil && buf.Closed() {
-				t.Fatalf("仍然可以将数据放入封闭缓冲区! (数据: %d)", i)
+				t.Fatalf("仍然可以将数据放入封闭缓冲器! (数据: %d)", i)
 			}
 		}
 	})
@@ -311,11 +311,11 @@ func TestBufferCloseInParallel(t *testing.T) {
 		for i := uint32(0); i < max; i++ {
 			_, err := buf.Get()
 			if err != nil && !buf.Closed() {
-				t.Fatalf("从缓冲区获取数据时错误: %s, (数据: %d)", err, i)
+				t.Fatalf("从缓冲器获取数据时错误: %s, (数据: %d)", err, i)
 			}
 			if buf.Closed() {
 				if _, err = buf.Get(); err == nil {
-					t.Fatalf("仍然可以将数据放入封闭缓冲区! (数据: %d)", i)
+					t.Fatalf("仍然可以将数据放入封闭缓冲器! (数据: %d)", i)
 				}
 			}
 		}
@@ -325,19 +325,19 @@ func TestBufferCloseInParallel(t *testing.T) {
 		time.Sleep(time.Millisecond)
 		ok := buf.Close()
 		if !ok {
-			t.Fatal("不能关闭缓冲区")
+			t.Fatal("不能关闭缓冲器")
 		}
 
 		if !buf.Closed() {
-			t.Fatalf("缓冲区状态不一致: 预期关闭: %v, 实际关闭: %v", true, buf.Closed())
+			t.Fatalf("缓冲器状态不一致: 预期关闭: %v, 实际关闭: %v", true, buf.Closed())
 		}
 
 		ok = buf.Close()
 		if ok {
-			t.Fatal("仍然不能关闭缓冲区！")
+			t.Fatal("仍然不能关闭缓冲器！")
 		}
 		if !buf.Closed() {
-			t.Fatalf("缓冲区状态不一致: 预期关闭: %v, 实际关闭: %v", true, buf.Closed())
+			t.Fatalf("缓冲器状态不一致: 预期关闭: %v, 实际关闭: %v", true, buf.Closed())
 		}
 	})
 }
