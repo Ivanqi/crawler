@@ -11,3 +11,13 @@ type Counts struct {
 	// HandlingNumber 代表实时处理数
 	HandlingNumber uint64
 }
+
+// SummaryStruct 代表组件摘要结构的类型
+type SummaryStruct struct {
+	ID        MID         `json:"id"`
+	Called    uint64      `json:"called"`
+	Accepted  uint64      `json:"accepted"`
+	Completed uint64      `json:"completed"`
+	Handling  uint64      `json:"handling"`
+	Extra     interface{} `json:"extra,omitempty"`
+}
