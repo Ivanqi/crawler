@@ -8,3 +8,6 @@ var midTemplate = "%s%d|%s"
 
 // MID 代表组件ID。
 type MID string
+
+// GenMID 会根据给定参数生成组件ID
+// func GenMID(mtype Type)

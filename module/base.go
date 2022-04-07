@@ -21,3 +21,19 @@ type SummaryStruct struct {
 	Handling  uint64      `json:"handling"`
 	Extra     interface{} `json:"extra,omitempty"`
 }
+
+// Module 代表组件的基础接口
+// 该接口的实现类型必须是并发安全
+type Module interface {
+	// ID 用于获取当前组件ID
+	ID() MID
+	// Addr 用于获取当前组件的网络地址的字符串形式
+	Addr() string
+	// Score 用于获取当前组件的评分
+	Score() uint64
+	// ScoreCalculator 用于获取评分计算器
+	// ScoreCalculator() CalculateScore
+	// CallCount 用于获取当前组件被调用的计数
+	CalledCount() uint64
+	// AcceptedCount
+}
