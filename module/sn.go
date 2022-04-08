@@ -56,6 +56,12 @@ func (gen *mySNGenertor) Max() uint64 {
 	return gen.max
 }
 
+func (gen *mySNGenertor) Next() uint64 {
+	gen.lock.RLock()
+	defer gen.lock.RUnlock()
+	return gen.next
+}
+
 func (gen *mySNGenertor) CycleCount() uint64 {
 	gen.lock.RLock()
 	defer gen.lock.RUnlock()

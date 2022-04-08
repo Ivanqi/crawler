@@ -28,4 +28,33 @@ var legalLetterTypeMap = map[string]Type{
 }
 
 // CheckType 用于判断组件实例的类型是否匹配
-func CheckType(moduleType Type, module )
+func CheckType(moduleType Type, module Module) bool {
+	if moduleType == "" || module == nil {
+		return false
+	}
+
+	switch moduleType {
+	case TYPE_DOWNLOADER:
+		if _, ok := module.(Downloader); ok {
+			return true
+		}
+	case TYPE_ANALYZER:
+		if _, ok := module.(Analyzer); ok {
+			return true
+		}
+	case TYPE_PIPELINE:
+		if _, ok := module.(Pipeline); ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+// LegalType 用于判断给定的组件类型是否合法
+func LegalType(moduleType Type) bool {
+	if _, ok := legalTypeLetterMap[moduleType]; ok {
+		return true
+	}
+	return false
+}
