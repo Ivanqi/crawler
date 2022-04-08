@@ -53,9 +53,7 @@ func SplitMID(mid MID) ([]string, error) {
 
 	letter = midStr[:1]
 	if _, ok = legalLetterTypeMap[letter]; !ok {
-		return nil, errors.NewIllegalParameterError(
-			ffmt.Sprintf("illegal module type letter: %s", letter)
-		)
+		return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module type letter: %s", letter))
 	}
 
 	snAndAddr := midStr[1:]
@@ -82,8 +80,8 @@ func SplitMID(mid MID) ([]string, error) {
 			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module IP: %s", ipStr))
 		}
 
-		postStr := addr[index+1]
-		if _, err := strconv.ParseUint(postStr, 10, 64); err != nil {
+		portStr := addr[index+1:]
+		if _, err := strconv.ParseUint(portStr, 10, 64); err != nil {
 			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module port: %s", portStr))
 		}
 	}

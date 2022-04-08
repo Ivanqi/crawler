@@ -1,5 +1,7 @@
 package module
 
+import "sync/atomic"
+
 // defaultFakeDownloader 代表默认的仿造下载器
 var defaultFakeDownloader = NewFakeDownloader(MID("D0"), CalculateScoreSimple)
 
@@ -50,4 +52,131 @@ type fakeModule struct {
 
 func (fm *fakeModule) ID() MID {
 	return fm.mid
+}
+
+func (fm *fakeModule) Addr() string {
+	parts, err := SplitMID(fm.mid)
+	if err == nil {
+		return parts[2]
+	}
+	return ""
+}
+
+func (fm *fakeModule) Score() uint64 {
+	return atomic.LoadUint64(&fm.score)
+}
+
+func (fm *fakeModule) SetScore(score uint64) {
+	atomic.StoreUint64(&fm.score, score)
+}
+
+func (fm *fakeModule) ScoreCalculator() CalculateScore {
+	return fm.scoreCalculator
+}
+
+func (fm *fakeModule) CalledCount() uint64 {
+	return fm.count + 10
+}
+
+func (fm *fakeModule) AcceptedCount() uint64 {
+	return fm.count + 8
+}
+
+func (fm *fakeModule) CompletedCount() uint64 {
+	return fm.count + 6
+}
+
+func (fm *fakeModule) HandlingNumber() uint64 {
+	return fm.count + 2
+}
+
+func (fm *fakeModule) Counts() Counts {
+	return Counts{
+		fm.CalledCount(),
+		fm.AcceptedCount(),
+		fm.CompletedCount(),
+		fm.HandlingNumber(),
+	}
+}
+
+func (fm *fakeModule) Summary() SummaryStruct {
+	return SummaryStruct{}
+}
+
+// NewFakeAnalyzer 用于创建一个仿造的分析器实例。
+func NewFakeAnalyzer(mid MID, scoreCalculator CalculateScore) Analyzer {
+	return &fakeAnalyzer{
+		fakeModule: fakeModule{
+			mid:             mid,
+			scoreCalculator: scoreCalculator,
+		},
+	}
+}
+
+// fakeAnalyzer 代表分析器的仿造类型。
+type fakeAnalyzer struct {
+	// fakeModule 代表仿造的组件实例。
+	fakeModule
+}
+
+func (analyzer *fakeAnalyzer) RespParsers() []ParseResponse {
+	return nil
+}
+
+func (analyzer *fakeAnalyzer) Analyze(resp *Response) (dataList []Data, errorList []error) {
+	return
+}
+
+// NewFakeAnalyzer 用于创建一个仿造的分析器实例
+func NewFakeDownloader(mid MID, scoreCalculator CalculateScore) Downloader {
+	return &fakeDownloader{
+		fakeModule: fakeModule{
+			mid:             mid,
+			scoreCalculator: scoreCalculator,
+		},
+	}
+}
+
+// fakeDownloader 代表下砸器的实现类型
+type fakeDownloader struct {
+	// fakeModule 代表仿造的组件实例
+	fakeModule
+}
+
+func (downloader *fakeDownloader) Download(req *Request) (*Response, error) {
+	return nil, nil
+}
+
+// NewFakePipeline 用于创建一个仿造的条目处理管道实例
+func NewFakePipeline(mid MID, scoreCalculator CalculateScore) Pipeline {
+	return &fakePipeline{
+		fakeModule: fakeModule{
+			mid:             mid,
+			scoreCalculator: scoreCalculator,
+		},
+	}
+}
+
+// fakePipeline 代表条目处理管道的实现类型
+type fakePipeline struct {
+	// fakeModule 代表仿造的组件实例
+	fakeModule
+	// failFast 代表处理是否需要快速失败
+	failFast bool
+}
+
+func (pipeline *fakePipeline) ItemProcessors() []ProcessItem {
+	return nil
+}
+
+func (pipeline *fakePipeline) Send(item Item) []error {
+	return nil
+}
+
+func (pipeline *fakePipeline) FailFast() bool {
+	return pipeline.failFast
+}
+
+func (pipeline *fakePipeline) SetFailFast(failFast bool) {
+	pipeline.failFast = failFast
 }
