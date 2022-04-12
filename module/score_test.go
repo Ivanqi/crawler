@@ -21,11 +21,22 @@ func TestCalculateScoreSimple(t *testing.T) {
 }
 
 func TestSetScore(t *testing.T) {
-	// fakeModule := NewFakeDownloader(MID("D0"), nil)
-	// ok := SetScore(fakeModule)
-	// if !ok {
-	// t.Fatal("Couldn't set score for module with default calculator!")
-	// }
+	fakeModule := NewFakeDownloader(MID("D0"), nil)
+	ok := SetScore(fakeModule)
+	if !ok {
+		t.Fatal("Couldn't set score for module with default calculator!")
+	}
 
-	// fakeModule =
+	fakeModule = NewFakeDownloader(MID("D0"), CalculateScoreSimple)
+	fakeModule.(*fakeDownloader).fakeModule.count++
+
+	ok = SetScore(fakeModule)
+	if !ok {
+		t.Fatal("Couldn't set score for module!")
+	}
+
+	ok = SetScore(fakeModule)
+	if ok {
+		t.Fatal("它仍然可以为模块设置相同的score!")
+	}
 }

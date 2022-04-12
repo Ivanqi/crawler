@@ -1,0 +1,94 @@
+package module
+
+import (
+	"crawler/errors"
+	"fmt"
+	"sync"
+)
+
+// Registrar 代表组件注册器的接口
+type Registrar interface {
+	// Register 用于注册组件实例
+	Register(module Module) (bool, error)
+	// Unregister 用于注释组件实例
+	Unregister(mid MID) (bool, error)
+	// Get 用于获取一个指定类型的组件的实例
+	// 本函数应该基于负载均衡策略返回实例
+	Get(moduleType Type) (Module, error)
+	// GetAllByType 用于获取指定类型的所有组件类型
+	GetAllByType(moduleType Type) (map[MID]Module, error)
+	// GetAll 用于获取所有组件实例
+	GetAll() map[MID]Module
+	// Clear 会清除所有的组件注册记录
+	Clear()
+}
+
+// myRegistrar 代表组件注册器的实现类型
+type myRegistrar struct {
+	// moduleTypeMap 代表组件类型与对应组件实例的映射
+	moduleTypeMap map[Type]map[MID]Module
+	// rwlock 代表组件注册专用读写锁
+	rwlock sync.RWMutex
+}
+
+// NewRegistrar 用于创建一个组件注册器的实例
+func NewRegistrar() Registrar {
+	return &myRegistrar{
+		moduleTypeMap: map[Type]map[MID]Module{},
+	}
+}
+
+func (registrar *myRegistrar) Register(module Module) (bool, error) {
+	if module == nil {
+		return false, errors.NewIllegalParameterError("无 module 实例")
+	}
+
+	mid := module.ID()
+	parts, err := SplitMID(mid)
+	if err != nil {
+		return false, err
+	}
+
+	moduleType := legalLetterTypeMap[parts[0]]
+	if CheckType(moduleType, module) {
+		errMsg := fmt.Sprintf("不正确的 module 类型: %s", moduleType)
+		return false, errors.NewIllegalParameterError(errMsg)
+	}
+
+	registrar.rwlock.Lock()
+	defer registrar.rwlock.Unlock()
+
+	modules := registrar.moduleTypeMap[moduleType]
+	if modules == nil {
+		modules = map[MID]Module{}
+	}
+
+	if _, ok := modules[mid]; ok {
+		return false, nil
+	}
+
+	modules[mid] = module
+	registrar.moduleTypeMap[moduleType] = modules
+	return true, nil
+}
+
+func (registrar *myRegistrar) Unregister(mid MID) (bool, error) {
+	parts, err := SplitMID(mid)
+	if err != nil {
+		return false, err
+	}
+
+	moduleType := legalLetterTypeMap[parts[0]]
+	var deleted bool
+	registrar.rwlock.Lock()
+	defer registrar.rwlock.Unlock()
+
+	if modules, ok := registrar.moduleTypeMap[moduleType]; ok {
+		if _, ok := modules[mid]; ok {
+			delete(modules, mid)
+			deleted = true
+		}
+	}
+
+	return deleted, nil
+}
