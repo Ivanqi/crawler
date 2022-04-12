@@ -42,14 +42,14 @@ func TestAddrNew(t *testing.T) {
 		}
 	}
 
-	network = "http"
+	network = "tcp"
 	_, err := NewAddr(network, ip, port)
 	if err == nil {
 		t.Fatalf("使用非法网络 %q! 创建缓冲区时没有错误!", network)
 	}
 
 	network = "http"
-	ip = "127.0.0.1"
+	ip = "127.0.0.0.1"
 	_, err = NewAddr(network, ip, port)
 	if err == nil {
 		t.Fatalf("使用非法网络 %q! 创建缓冲区时没有错误！", network)

@@ -48,12 +48,12 @@ func SplitMID(mid MID) ([]string, error) {
 
 	midStr := string(mid)
 	if len(midStr) <= 1 {
-		return nil, errors.NewIllegalParameterError("insufficient MID")
+		return nil, errors.NewIllegalParameterError("MID 长度不够")
 	}
 
 	letter = midStr[:1]
 	if _, ok = legalLetterTypeMap[letter]; !ok {
-		return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module type letter: %s", letter))
+		return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法类型 letter: %s", letter))
 	}
 
 	snAndAddr := midStr[1:]
@@ -61,28 +61,28 @@ func SplitMID(mid MID) ([]string, error) {
 	if index < 0 {
 		snStr = snAndAddr
 		if !legalSN(snStr) {
-			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module SN: %s", snStr))
+			return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法模块 SN: %s", snStr))
 		}
 	} else {
 		snStr = snAndAddr[:index]
 		if !legalSN(snStr) {
-			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module address: %s", addr))
+			return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法模块 address: %s", addr))
 		}
 
 		addr = snAndAddr[index+1:]
 		index = strings.LastIndex(addr, ":")
 		if index <= 0 {
-			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module address: %s", addr))
+			return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法模块 address: %s", addr))
 		}
 
 		ipStr := addr[:index]
 		if ip := net.ParseIP(ipStr); ip == nil {
-			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module IP: %s", ipStr))
+			return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法模块 IP: %s", ipStr))
 		}
 
 		portStr := addr[index+1:]
 		if _, err := strconv.ParseUint(portStr, 10, 64); err != nil {
-			return nil, errors.NewIllegalParameterError(fmt.Sprintf("illegal module port: %s", portStr))
+			return nil, errors.NewIllegalParameterError(fmt.Sprintf("非法模块 port: %s", portStr))
 		}
 	}
 

@@ -41,6 +41,6 @@ func NewAddr(network string, ip string, port uint64) (net.Addr, error) {
 
 	return &mAddr{
 		network: network,
-		address: ip + ": " + strconv.Itoa(int(port)),
+		address: ip + ":" + strconv.Itoa(int(port)),
 	}, nil
 }
