@@ -92,3 +92,71 @@ func (registrar *myRegistrar) Unregister(mid MID) (bool, error) {
 
 	return deleted, nil
 }
+
+// Get 用于获取一个指定类型的组件的实例
+// 本函数会基于负载均衡策略返回实例
+func (registrar *myRegistrar) Get(moduleType Type) (Module, error) {
+	modules, err := registrar.GetAllByType(moduleType)
+	if err != nil {
+		return nil, err
+	}
+
+	minScore := uint64(0)
+	var selectedModule Module
+	for _, module := range modules {
+		SetScore(module)
+		score := module.Score()
+		if minScore == 0 || score < minScore {
+			selectedModule = module
+			minScore = score
+		}
+	}
+
+	return selectedModule, nil
+}
+
+// GetAllByType 用于获取指定类型的所有组件实例
+func (registrar *myRegistrar) GetAllByType(moduleType Type) (map[MID]Module, error) {
+	if !LegalType(moduleType) {
+		errMsg := fmt.Sprintf("非法 module 类型: %s", moduleType)
+		return nil, errors.NewIllegalParameterError(errMsg)
+	}
+
+	registrar.rwlock.RLock()
+	defer registrar.rwlock.RUnlock()
+
+	modules := registrar.moduleTypeMap[moduleType]
+	if len(modules) == 0 {
+		return nil, ErrNotFoundModuleInstance
+	}
+
+	result := map[MID]Module{}
+	for mid, module := range modules {
+		result[mid] = module
+	}
+
+	return result, nil
+}
+
+// GetAll 用于获取所有组件实例
+func (registrar *myRegistrar) GetAll() map[MID]Module {
+	result := map[MID]Module{}
+	registrar.rwlock.RLock()
+	defer registrar.rwlock.RUnlock()
+
+	for _, modules := range registrar.moduleTypeMap {
+		for mid, module := range modules {
+			result[mid] = module
+		}
+	}
+
+	return result
+}
+
+// Clear 会清除所有组件的注册记录
+func (registrar *myRegistrar) Clear() {
+	registrar.rwlock.Lock()
+	defer registrar.rwlock.Unlock()
+
+	registrar.moduleTypeMap = map[Type]map[MID]Module{}
+}
