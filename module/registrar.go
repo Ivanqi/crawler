@@ -50,7 +50,7 @@ func (registrar *myRegistrar) Register(module Module) (bool, error) {
 	}
 
 	moduleType := legalLetterTypeMap[parts[0]]
-	if CheckType(moduleType, module) {
+	if !CheckType(moduleType, module) {
 		errMsg := fmt.Sprintf("不正确的 module 类型: %s", moduleType)
 		return false, errors.NewIllegalParameterError(errMsg)
 	}

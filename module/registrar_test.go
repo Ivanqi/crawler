@@ -2,6 +2,7 @@ package module
 
 import (
 	"fmt"
+	"net"
 	"testing"
 )
 
@@ -162,7 +163,7 @@ func TestModuleUnregister(t *testing.T) {
 
 	for _, illegalMID := range illegalMIDs {
 		ok, err := registrar.Unregister(illegalMID)
-		if err != nil {
+		if err == nil {
 			t.Fatalf("注销具有非法 MID %q 的模块实例时没有错误!", illegalMID)
 		}
 
@@ -170,4 +171,105 @@ func TestModuleUnregister(t *testing.T) {
 			t.Fatalf("仍然可以注销具有非法MID %q 的模块实例", illegalMID)
 		}
 	}
+}
+
+func TestModuleGet(t *testing.T) {
+	registrar := NewRegistrar()
+	mt := illegalTypes[0]
+	m1, err := registrar.Get(mt)
+	if err == nil {
+		t.Fatalf("获取具有非法类型 %q 的模块实例时没有错误!", mt)
+	}
+
+	if m1 != nil {
+		t.Fatalf("仍然可以获得非法类型 %q 的模块实例！", mt)
+	}
+
+	mt = TYPE_DOWNLOADER
+	m1, err = registrar.Get(mt)
+	if err == nil {
+		t.Fatal("获取不存在的模块实例时没有错误!")
+	}
+
+	if m1 != nil {
+		t.Fatalf("仍然可以获得不存在的模块实例!")
+	}
+
+	addr, _ := NewAddr("http", "127.0.0.1", 8080)
+	mid := MID(fmt.Sprintf(midTemplate, legalTypeLetterMap[mt], DefaultSNGen.Get(), addr))
+	m := defaultFakeModuleMap[mt]
+	_, err = registrar.Register(m)
+	if err != nil {
+		t.Fatalf("注册模块实例时出错: %s (mid: %s)", err, mid)
+	}
+
+	m1, err = registrar.Get(mt)
+	if err != nil {
+		t.Fatalf("获取模块实例时出错: %s (mid: %s)", err, mid)
+	}
+
+	if m1 == nil {
+		t.Fatalf("无法获取 MID %q 的模块实例", mid)
+	}
+
+	if m1.ID() != m.ID() {
+		t.Fatalf("不一致的MID: 预期: %s, 实例: %s", m.ID(), m1.ID())
+	}
+}
+
+func TestModuleAllInParallel(t *testing.T) {
+	baseSize := 1000
+	basePort := 8000
+	legalTypesLen := len(legalTypes)
+	sLen := baseSize * legalTypesLen
+	types := make([]Type, sLen)
+	sns := make([]uint64, sLen)
+	addrs := make([]net.Addr, sLen)
+	for i := 0; i < sLen; i++ {
+		types[i] = legalTypes[i%legalTypesLen]
+		port := uint64(basePort + basePort%legalTypesLen)
+		addrs[i], _ = NewAddr("http", "127.0.0.1", port)
+		sns[i] = DefaultSNGen.Get()
+	}
+	registrar := NewRegistrar()
+	t.Run("All in parallel", func(t *testing.T) {
+		t.Run("Register", func(t *testing.T) {
+			t.Parallel()
+			for i, addr := range addrs {
+				mt := types[i]
+				sn := DefaultSNGen.Get()
+				mid, err := GenMID(mt, sn, addr)
+				if err != nil {
+					t.Fatalf("生成模块ID时出错: %s (type: %s, sn: %d, addr: %s)", err, mt, sn, addr)
+				}
+
+				m := fakeModuleFuncMap[mt](mid)
+				_, err = registrar.Register(m)
+				if err != nil {
+					t.Fatalf("注册模块实例时出错: %s (type: %s, sn: %d, addr: %s)", err, mt, sn, addr)
+				}
+			}
+		})
+		t.Run("Unregister", func(t *testing.T) {
+			t.Parallel()
+			for i, addr := range addrs {
+				mt := types[i]
+				sn := sns[i]
+				mid, _ := GenMID(mt, sn, addr)
+				_, err := registrar.Unregister(mid)
+				if err != nil {
+					t.Fatalf("注销模块实例时候出错: %s (mid: %s)", err, mid)
+				}
+			}
+		})
+		t.Run("Get", func(t *testing.T) {
+			t.Parallel()
+			for _, mt := range types {
+				m, err := registrar.Get(mt)
+				if err != nil && err != ErrNotFoundModuleInstance {
+					t.Fatalf("获取模块实例时出错: %s (mid: %s)", err, m.ID())
+				}
+			}
+		})
+	})
 }
