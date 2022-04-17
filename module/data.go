@@ -13,6 +13,7 @@ type Request struct {
 	// httpReq 代表HTTP请求
 	httpReq *http.Request
 	// depth 代表请求的深度
+	// 一个请求的深度值等于对它的父请求的深度值递增一次后的结果
 	depth uint32
 }
 
