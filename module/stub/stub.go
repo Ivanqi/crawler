@@ -124,7 +124,7 @@ func (m *myModule) DecrHandlingNumber() {
 }
 
 func (m *myModule) Clear() {
-	atomic.StoreInt64(&m.calledCount, 0)
+	atomic.StoreUint64(&m.calledCount, 0)
 	atomic.StoreUint64(&m.acceptedCount, 0)
 	atomic.StoreUint64(&m.completedCount, 0)
 	atomic.StoreUint64(&m.handlingNumber, 0)
