@@ -43,15 +43,15 @@ func (args *RequestArgs) Same(another *RequestArgs) bool {
 		return false
 	}
 
-	// if anotherDomainsLen > 0 {
-	// 	for i, domain := range anotherDomains {
-	// 		if domain != args.AcceptedCount[i] {
-	// 			return false
-	// 		}
-	// 	}
-	// }
+	if anotherDomainsLen > 0 {
+		for i, domain := range anotherDomains {
+			if domain != args.AcceptedDomains[i] {
+				return false
+			}
+		}
+	}
 
-	return false
+	return true
 }
 
 // DataArgs 代表数据相关的参数容器类型
