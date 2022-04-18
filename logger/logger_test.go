@@ -1,7 +1,7 @@
-package log
+package logger
 
 import (
-	"log/base"
+	"crawler/logger/base"
 	"os"
 	"testing"
 )

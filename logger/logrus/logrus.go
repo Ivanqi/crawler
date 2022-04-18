@@ -1,9 +1,9 @@
 package logrus
 
 import (
+	"crawler/logger/base"
+	"crawler/logger/field"
 	"io"
-	"log/base"
-	"log/field"
 	"os"
 
 	"github.com/sirupsen/logrus"

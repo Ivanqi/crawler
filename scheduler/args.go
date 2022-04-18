@@ -43,13 +43,13 @@ func (args *RequestArgs) Same(another *RequestArgs) bool {
 		return false
 	}
 
-	if anotherDomainsLen > 0 {
-		for i, domain := range anotherDomains {
-			if domain != args.AcceptedCount[i] {
-				return false
-			}
-		}
-	}
+	// if anotherDomainsLen > 0 {
+	// 	for i, domain := range anotherDomains {
+	// 		if domain != args.AcceptedCount[i] {
+	// 			return false
+	// 		}
+	// 	}
+	// }
 
 	return false
 }

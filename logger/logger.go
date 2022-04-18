@@ -1,10 +1,10 @@
-package log
+package logger
 
 import (
+	"crawler/logger/base"
+	"crawler/logger/logrus"
 	"fmt"
 	"io"
-	"log/base"
-	"log/logrus"
 	"os"
 	"sync"
 )

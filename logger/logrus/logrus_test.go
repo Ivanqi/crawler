@@ -1,8 +1,8 @@
 package logrus
 
 import (
-	"log/base"
-	"log/field"
+	"crawler/logger/base"
+	"crawler/logger/field"
 	"os"
 	"testing"
 )
