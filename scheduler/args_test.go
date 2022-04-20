@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"crawler/module"
+	"crawler/module/local/analyzer"
 	"crawler/module/local/downloader"
 	"fmt"
 	"net/http"
@@ -148,6 +149,54 @@ func genSimpleDownloaders(number int8, reuseMID bool, snGen module.SNGenertor, t
 		}
 		return []module.Downloader{d}
 	}
+
+	results := make([]module.Downloader, number)
+	var mid module.MID
+	for i := int8(0); i < number; i++ {
+		if i == 0 || !reuseMID {
+			mid = module.MID(fmt.Sprintf("D%d", snGen.Get()))
+		}
+
+		httpClient := &http.Client{}
+		d, err := downloader.New(mid, httpClient, nil)
+		if err != nil {
+			t.Fatalf("创建下载器时出错: %s(mid: %s, httpClient:%#v)", err, mid, httpClient)
+		}
+		results[i] = d
+	}
+
+	return results
+}
+
+// genSimpleAnalyzers 用于生成一定数量的简易分析器
+func genSimpleAnalyzers(number int8, resultMID bool, snGen module.SNGenertor, t *testing.T) []module.Analyzer {
+	respParsers := []module.ParseResponse(parseATag)
+	if number < -1 {
+		return []module.Analyzer{nil}
+	} else if number == -1 { // 不合规的MID
+		mid := module.MID(fmt.Sprintf("P%d", snGen.Get()))
+		a, err := analyzer.New(mid, respParsers, nil)
+		if err != nil {
+			t.Fatalf("创建分析器时出错: %s(mid: %s, respParsers: %#v)", err, mid, respParsers)
+		}
+		return []module.Analyzer{a}
+	}
+
+	results := make([]module.Analyzer, number)
+	var mid module.MID
+	for i := int8(0); i < number; i++ {
+		if i == 0 || !resultMID {
+			mid = module.MID(fmt.Sprintf("A%d", snGen.Get()))
+		}
+
+		a, err := analyzer.New(mid, respParsers, nil)
+		if err != nil {
+			t.Fatalf("创建分析器时出错: %s (mid: %s, respParsers: %#v)", err, mid, respParsers)
+		}
+		results[i] = a
+	}
+
+	return results
 }
 
 // genSimpleModuleArgs 用于生成只包含简易组件实例的参数实例
@@ -156,7 +205,8 @@ func genSimpleModuleArgs(downloaderNumber int8, analyzerNumber int8, pipelineNum
 
 	return ModuleArgs{
 		Downloaders: genSimpleDownloaders(downloaderNumber, false, snGen, t),
-		Analyzers:   genSimpleAnalyzers(),
+		Analyzers:   genSimpleAnalyzers(analyzerNumber, false, snGen, t),
+		Pipelines:   genSimplePipelines(pipelineNumber, false, snGen, t),
 	}
 }
 
