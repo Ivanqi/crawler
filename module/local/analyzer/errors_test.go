@@ -19,7 +19,7 @@ func TestErrorGenError(t *testing.T) {
 		t.Fatalf("错误类型字符串不一致。预期: %q, 实际: %q", expectedErrType, ce.Type())
 	}
 
-	expectedErrMsg := "crawler error: analyzer error:" + simpleErrMsg
+	expectedErrMsg := "crawler error: analyzer error: " + simpleErrMsg
 	if ce.Error() != expectedErrMsg {
 		t.Fatalf("不一致的错误信息。预期: %q, 实际: %q", expectedErrMsg, ce.Error())
 	}
