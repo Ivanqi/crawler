@@ -1,12 +1,21 @@
 package scheduler
 
 import (
+	"crawler/logger"
 	"crawler/module"
 	"crawler/module/local/analyzer"
 	"crawler/module/local/downloader"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/PuerkitoBio/goquery"
+	"crawler/module"
+	"crawler/module/local/analyzer"
+	"crawler/module/local/downloader"
+	"crawler/module/local/pipeline"
 )
 
 // genRequestArgs 用于生成请求参数的实例。
@@ -168,9 +177,93 @@ func genSimpleDownloaders(number int8, reuseMID bool, snGen module.SNGenertor, t
 	return results
 }
 
+// parseATag 代表一个响应解析函数的实现，只解析"A" 标签
+func parseATag(httpResp *http.Response, respDepth uint32) ([]module.Data, []error) {
+	// TODO: 支持更多的HTTP响应状态
+	if httpResp.StatusCode != 200 {
+		err := fmt.Errorf(fmt.Sprintf("不支持的状态码 %d(httpResponse: %v)"))
+		return nil, []error{err}
+	}
+
+	reqURL := httpResp.Request.URL
+	httpRespBody := httpResp.Body
+	defer func() {
+		if httpRespBody != nil {
+			httpRespBody.Close()
+		}
+	}()
+
+	var dataList []module.Data
+	var errs []error
+	// 开始解析
+	doc, err := goquery.NewDocumentFromReader(httpRespBody)
+	if err != nil {
+		errs = append(errs, err)
+		return dataList, errs
+	}
+
+	defer httpRespBody.Close()
+
+	// 查找 'A' 标签并提取链接地址
+	doc.Find("a").Each(func(index int, sel *goquery.Selection) {
+		href, exists := sel.Attr("href")
+		// 前期过滤
+		if !exists || href == "" || href == "#" || href == "/" {
+			return
+		}
+
+		href = strings.TrimSpace(href)
+		lowerHref := strings.ToLower(href)
+
+		// 暂不支持对Javascript 代码的解析
+		if href != "" && !strings.HasPrefix(lowerHref, "javascript") {
+			aURL, err := url.Parse(href)
+			if err != nil {
+				logger.DLogger().Warnf("解析标记 %q 中的属性 %q 时发生错误: %s (href: %s)", err, "href", "a", href)
+				return
+			}
+
+			if !aURL.IsAbs() {
+				aURL = reqURL.ResolveReference(aURL)
+			}
+
+			httpReq, err := http.NewRequest("GET", aURL.String(), nil)
+			if err != nil {
+				errs = append(errs, err)
+			} else {
+				req := module.NewRequest(httpReq, respDepth)
+				dataList = append(dataList, req)
+			}
+		}
+
+		text := strings.TrimSpace(sel.Text())
+
+		var id, name string
+		if v, ok := sel.Attr("id"); ok {
+			id = strings.TrimSpace(v)
+		}
+		if v, ok := sel.Attr("name"); ok {
+			name = strings.TrimSpace(v)
+		}
+
+		m := make(map[string]interface{})
+		m["a.parent"] = reqURL
+		m["a.id"] = id
+		m["a.name"] = name
+		m["a.text"] = text
+		m["a.index"] = index
+
+		item := module.Item(m)
+		dataList = append(dataList, item)
+		logger.DLogger().Infof("Processed item: %v", m)
+	})
+
+	return dataList, errs
+}
+
 // genSimpleAnalyzers 用于生成一定数量的简易分析器
 func genSimpleAnalyzers(number int8, resultMID bool, snGen module.SNGenertor, t *testing.T) []module.Analyzer {
-	respParsers := []module.ParseResponse(parseATag)
+	respParsers := []module.ParseResponse{parseATag}
 	if number < -1 {
 		return []module.Analyzer{nil}
 	} else if number == -1 { // 不合规的MID
@@ -199,6 +292,17 @@ func genSimpleAnalyzers(number int8, resultMID bool, snGen module.SNGenertor, t 
 	return results
 }
 
+// genSimplePipelines 用于生成一定数量的简易条目处理管道
+func genSimplePipelines(number int8, resultMID bool, snGen module.SNGenertor, t *testing.T) []module.Pipeline {
+	processors := []module.ProcessItem{processItem}
+	if number <- -1 {
+		return []module.Pipeline{nil}
+	} else if number == -1 {	// 不合规的MID
+		mid := module.MID(fmt.Sprintf("D%d", snGen.Get()))
+		// p, err := pipeline.New()
+	}
+}
+
 // genSimpleModuleArgs 用于生成只包含简易组件实例的参数实例
 func genSimpleModuleArgs(downloaderNumber int8, analyzerNumber int8, pipelineNumber int8, t *testing.T) ModuleArgs {
 	snGen := module.NewSNGenertor(1, 0)
@@ -210,6 +314,6 @@ func genSimpleModuleArgs(downloaderNumber int8, analyzerNumber int8, pipelineNum
 	}
 }
 
-func TestArgsModule(t *testing.T) {
-	moduleArgs := genSimpleModuleArgs
-}
+// func TestArgsModule(t *testing.T) {
+// 	moduleArgs := genSimpleModuleArgs
+// }
