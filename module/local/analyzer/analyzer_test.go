@@ -3,6 +3,7 @@ package analyzer
 import (
 	"bufio"
 	"crawler/module"
+	"crawler/module/stub"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -22,6 +23,9 @@ func (r testingReader) Read(b []byte) (n int, err error) {
 func (r testingReader) Close() error {
 	return nil
 }
+
+// fakeHTTPRespBody 代表伪造的HTTP响应体的模板
+var fakeHTTPRespBody = "Fake HTTP Response [%d]"
 
 // testingRespParser 为测试专用的响应解析函数
 // 生成的函数会把响应的请求URL，响应体中的索引和响应深度存在条目中
@@ -110,6 +114,29 @@ func TestNew(t *testing.T) {
 			t.Fatalf("使用非法解析器: %#v 创建分析器时没有错误", parsers)
 		}
 	}
+}
+
+// getTestingResps 用于生成测试专用的响应实例
+// 该函数返回的响应实例都是伪造的，只提供了测试必用的内容
+func getTestingResps(number uint32, method string, url string, depth uint32, t *testing.T) []*module.Response {
+	httpReq, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		t.Fatalf("创建HTTP请求出错:%s(method:%s, url: %s)", err, method, url)
+	}
+
+	resps := []*module.Response{}
+	for i := uint32(0); i < number; i++ {
+		httpResp := &http.Response{
+			Request: httpReq,
+			Body: testingReader{
+				strings.NewReader(fmt.Sprintf(fakeHTTPRespBody, i)),
+			},
+		}
+		resp := module.NewResponse(httpResp, depth)
+		resps = append(resps, resp)
+	}
+
+	return resps
 }
 
 func TestAnalyze(t *testing.T) {
@@ -214,5 +241,96 @@ func TestAnalyze(t *testing.T) {
 	_, errs = a.Analyze(resp)
 	if len(errs) == 0 {
 		t.Fatalf("使用 nil 请求 URL 分析响应时没有错误")
+	}
+}
+
+func TestCount(t *testing.T) {
+	mid := module.MID("D1|127.0.0.1:8080")
+	// 测试初始化后的计数
+	parsers := []module.ParseResponse{genTestingRespParser(false)}
+	a, _ := New(mid, parsers, nil)
+	ai := a.(stub.ModuleInternal)
+
+	if ai.CalledCount() != 0 {
+		t.Fatalf("内部模块的调用计数不一致。预期: %d, 实际: %d", 0, ai.CalledCount())
+	}
+
+	if ai.AcceptedCount() != 0 {
+		t.Fatalf("内部模块接受计数不一致。预期:%d, 实际: %d", 0, ai.AcceptedCount())
+	}
+
+	if ai.CompletedCount() != 0 {
+		t.Fatalf("内部模块的完成计数不一致。预期: %d, 实际: %d", 0, ai.CompletedCount())
+	}
+
+	if ai.HandlingNumber() != 0 {
+		t.Fatalf("内部模块的处理数不一致。预期: %d, 实际: %d", 0, ai.HandlingNumber())
+	}
+
+	// 测试处理失败时的计数
+	parsers = []module.ParseResponse{genTestingRespParser(true)}
+	a, _ = New(mid, parsers, nil)
+	ai = a.(stub.ModuleInternal)
+	resp := getTestingResps(1, "GET", "https://gitee.com/Ivanmax/algorithm", 0, t)[0]
+	a.Analyze(resp)
+
+	if ai.CalledCount() != 1 {
+		t.Fatalf("内部模块的调用计数不一致。预期: %d, 实际: %d", 1, ai.CalledCount())
+	}
+
+	if ai.AcceptedCount() != 1 {
+		t.Fatalf("内部模块接受的计数不一致。预期: %d, 实际: %d", 1, ai.AcceptedCount())
+	}
+
+	if ai.CompletedCount() != 0 {
+		t.Fatalf("内部模块的完成计数不一致。预期: %d, 实际: %d", 0, ai.CompletedCount())
+	}
+
+	if ai.HandlingNumber() != 0 {
+		t.Fatalf("内部模块的处理数不一致。预期: %d, 实际: %d", 0, ai.HandlingNumber())
+	}
+
+	// 测试参数有误时的计数
+	parsers = []module.ParseResponse{genTestingRespParser(false)}
+	a, _ = New(mid, parsers, nil)
+	ai = a.(stub.ModuleInternal)
+	resp = module.NewResponse(nil, 0)
+	a.Analyze(resp)
+	if ai.CalledCount() != 1 {
+		t.Fatalf("内部模块的调用计数不一致。预期: %d, 实际: %d", 1, ai.CalledCount())
+	}
+
+	if ai.AcceptedCount() != 0 {
+		t.Fatalf("内部模块接受的计数不一致。预期: %d, 实际: %d", 0, ai.AcceptedCount())
+	}
+
+	if ai.CompletedCount() != 0 {
+		t.Fatalf("内部模块的完成计数不一致。预期: %d, 实际: %d", 0, ai.CompletedCount())
+	}
+
+	if ai.HandlingNumber() != 0 {
+		t.Fatalf("内部模块的处理数不一字。预期: %d, 实际: %d", 0, ai.HandlingNumber())
+	}
+
+	// 测试处理完成时的计数
+	parsers = []module.ParseResponse{genTestingRespParser(false)}
+	a, _ = New(mid, parsers, nil)
+	ai = a.(stub.ModuleInternal)
+	resp = getTestingResps(1, "GET", "https://gitee.com/Ivanmax/algorithm", 0, t)[0]
+	a.Analyze(resp)
+	if ai.CalledCount() != 1 {
+		t.Fatalf("内部模块的调用计数不一致。预期: %d, 实际: %d", 1, ai.CalledCount())
+	}
+
+	if ai.AcceptedCount() != 1 {
+		t.Fatalf("内部模块接受的计数不一致。预期: %d, 实际: %d", 0, ai.AcceptedCount())
+	}
+
+	if ai.CompletedCount() != 1 {
+		t.Fatalf("内部模块的完成计数不一致。预期: %d, 实际: %d", 0, ai.CompletedCount())
+	}
+
+	if ai.HandlingNumber() != 0 {
+		t.Fatalf("内部模块的处理数不一字。预期: %d, 实际: %d", 0, ai.HandlingNumber())
 	}
 }
