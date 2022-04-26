@@ -5,17 +5,16 @@ import (
 	"crawler/module"
 	"crawler/module/local/analyzer"
 	"crawler/module/local/downloader"
+	"crawler/module/local/pipeline"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"crawler/module"
-	"crawler/module/local/analyzer"
-	"crawler/module/local/downloader"
-	"crawler/module/local/pipeline"
 )
 
 // genRequestArgs 用于生成请求参数的实例。
@@ -181,7 +180,7 @@ func genSimpleDownloaders(number int8, reuseMID bool, snGen module.SNGenertor, t
 func parseATag(httpResp *http.Response, respDepth uint32) ([]module.Data, []error) {
 	// TODO: 支持更多的HTTP响应状态
 	if httpResp.StatusCode != 200 {
-		err := fmt.Errorf(fmt.Sprintf("不支持的状态码 %d(httpResponse: %v)"))
+		err := fmt.Errorf(fmt.Sprintf("不支持的状态码 %d! (httpResponse: %v)", httpResp.StatusCode, httpResp))
 		return nil, []error{err}
 	}
 
@@ -292,17 +291,6 @@ func genSimpleAnalyzers(number int8, resultMID bool, snGen module.SNGenertor, t 
 	return results
 }
 
-// genSimplePipelines 用于生成一定数量的简易条目处理管道
-func genSimplePipelines(number int8, resultMID bool, snGen module.SNGenertor, t *testing.T) []module.Pipeline {
-	processors := []module.ProcessItem{processItem}
-	if number <- -1 {
-		return []module.Pipeline{nil}
-	} else if number == -1 {	// 不合规的MID
-		mid := module.MID(fmt.Sprintf("D%d", snGen.Get()))
-		// p, err := pipeline.New()
-	}
-}
-
 // genSimpleModuleArgs 用于生成只包含简易组件实例的参数实例
 func genSimpleModuleArgs(downloaderNumber int8, analyzerNumber int8, pipelineNumber int8, t *testing.T) ModuleArgs {
 	snGen := module.NewSNGenertor(1, 0)
@@ -314,6 +302,79 @@ func genSimpleModuleArgs(downloaderNumber int8, analyzerNumber int8, pipelineNum
 	}
 }
 
-// func TestArgsModule(t *testing.T) {
-// 	moduleArgs := genSimpleModuleArgs
-// }
+func TestArgsModule(t *testing.T) {
+	moduleArgs := genSimpleModuleArgs(3, 2, 1, t)
+	if err := moduleArgs.Check(); err != nil {
+		t.Fatalf("Inconsistent check result: expected: %v, actual: %v",
+			nil, err)
+	}
+	expectedSummary := ModuleArgsSummary{
+		DownloaderListSize: 3,
+		AnalyzerListSize:   2,
+		PipelineListSize:   1,
+	}
+	summary := moduleArgs.Summary()
+	if summary != expectedSummary {
+		t.Fatalf("Inconsistent module args summary: expected: %#v, actual: %#v",
+			expectedSummary, summary)
+	}
+	moduleArgsList := []ModuleArgs{
+		genSimpleModuleArgs(0, 2, 1, t),
+		genSimpleModuleArgs(3, 0, 1, t),
+		genSimpleModuleArgs(3, 2, 0, t),
+		ModuleArgs{},
+	}
+	for _, moduleArgs := range moduleArgsList {
+		if err := moduleArgs.Check(); err == nil {
+			t.Fatalf("No error when check module arguments! (moduleArgs: %#v)",
+				moduleArgs)
+		}
+	}
+}
+
+// genSimplePipelines 用于生成一定数量的简易条目处理管道。
+func genSimplePipelines(number int8, reuseMID bool, snGen module.SNGenertor, t *testing.T) []module.Pipeline {
+	processors := []module.ProcessItem{processItem}
+	if number < -1 {
+		return []module.Pipeline{nil}
+	} else if number == -1 { // 不合规的MID。
+		mid := module.MID(fmt.Sprintf("D%d", snGen.Get()))
+		p, err := pipeline.New(mid, processors, nil)
+		if err != nil {
+			t.Fatalf("An error occurs when creating a pipeline: %s (mid: %s, processors: %#v)",
+				err, mid, processors)
+		}
+		return []module.Pipeline{p}
+	}
+	results := make([]module.Pipeline, number)
+	var mid module.MID
+	for i := int8(0); i < number; i++ {
+		if i == 0 || !reuseMID {
+			mid = module.MID(fmt.Sprintf("P%d", snGen.Get()))
+		}
+		p, err := pipeline.New(mid, processors, nil)
+		if err != nil {
+			t.Fatalf("An error occurs when creating a pipeline: %s (mid: %s, processors: %#v)",
+				err, mid, processors)
+		}
+		results[i] = p
+	}
+	return results
+}
+
+// processItem 代表一个条目处理函数的实现。
+func processItem(item module.Item) (result module.Item, err error) {
+	if item == nil {
+		return nil, errors.New("Invalid item!")
+	}
+	// 生成结果。
+	result = make(map[string]interface{})
+	for k, v := range item {
+		result[k] = v
+	}
+	if _, ok := result["number"]; !ok {
+		result["number"] = len(result)
+	}
+	time.Sleep(10 * time.Millisecond)
+	return result, nil
+}

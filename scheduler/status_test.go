@@ -71,7 +71,7 @@ func TestCheckStatus(t *testing.T) {
 
 	wantedStatus = SCHED_STATUS_STOPPING
 	if err := checkStatus(currentStatus, wantedStatus, nil); err != nil {
-		t.Fatalf("检查状态时出错: %s (currentStatus: %q, wantedStatus: %q)!")
+		t.Fatalf("检查状态时出错: %s (currentStatus: %q, wantedStatus: %q)!", err, GetStatusDescription(currentStatus), GetStatusDescription(wantedStatus))
 	}
 
 	// 5. 只要未处于已启动状态就不能变为正在停止状态
