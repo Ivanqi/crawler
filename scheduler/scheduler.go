@@ -19,7 +19,7 @@ var logger = log.DLogger()
 // Scheduler 代表调度器的接口类型
 type Scheduler interface {
 	// Init 用于初始化调度器, 参数requestArgs代表请求相关的参数, 参数dataArgs代表数据相关的参数, 参数moduleArgs代表组件相关的参数
-	Init(requestArgs int, dataArgs DataArgs, moduleArgs ModuleArgs) (err error)
+	Init(requestArgs RequestArgs, dataArgs DataArgs, moduleArgs ModuleArgs) (err error)
 
 	// Start 用于启动调度器并执行爬取流程
 	// 参数firstHTTPReq即代表首次请求。调度器会以此为起始点开始执行爬取流程

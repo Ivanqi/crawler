@@ -58,8 +58,7 @@ func main() {
 	for _, domain := range domainParts {
 		domain = strings.TrimSpace(domain)
 		if domain != "" {
-			acceptedDomains =
-				append(acceptedDomains, domain)
+			acceptedDomains = append(acceptedDomains, domain)
 		}
 	}
 

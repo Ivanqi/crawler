@@ -53,20 +53,6 @@ type mySchedSummary struct {
 	sched *myScheduler
 }
 
-// mySchedSummary 代表调度器摘要的实现类型。
-type mySchedSummary struct {
-	// requestArgs 代表请求相关的参数。
-	requestArgs RequestArgs
-	// dataArgs 代表数据相关参数的容器实例。
-	dataArgs DataArgs
-	// moduleArgs 代表组件相关参数的容器实例。
-	moduleArgs ModuleArgs
-	// maxDepth 代表爬取的最大深度。
-	maxDepth uint32
-	// sched 代表调度器实例。
-	sched *myScheduler
-}
-
 // newSchedSummary 用于创建一个调度器摘要实例。
 func newSchedSummary(requestArgs RequestArgs, dataArgs DataArgs, moduleArgs ModuleArgs, sched *myScheduler) SchedSummary {
 	if sched == nil {

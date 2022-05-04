@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"crawler/errors"
-	"crawler/logger"
+	log "crawler/logger"
 	"crawler/module"
 	"crawler/toolkit/buffer"
 )
@@ -58,7 +58,7 @@ func sendError(err error, mid module.MID, errorBufferPool buffer.Pool) bool {
 
 	go func(crawlerError errors.CrawlerError) {
 		if err := errorBufferPool.Put(crawlerError); err != nil {
-			logger.DLogger().Warnln("错误缓冲池已关闭。忽略错误发送")
+			log.DLogger().Warnln("错误缓冲池已关闭。忽略错误发送")
 		}
 	}(crawlerError)
 

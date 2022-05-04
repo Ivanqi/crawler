@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	"crawler/logger"
+	log "crawler/logger"
 	"crawler/module"
 	"crawler/module/local/analyzer"
 	"crawler/module/local/downloader"
@@ -218,7 +218,7 @@ func parseATag(httpResp *http.Response, respDepth uint32) ([]module.Data, []erro
 		if href != "" && !strings.HasPrefix(lowerHref, "javascript") {
 			aURL, err := url.Parse(href)
 			if err != nil {
-				logger.DLogger().Warnf("解析标记 %q 中的属性 %q 时发生错误: %s (href: %s)", err, "href", "a", href)
+				log.DLogger().Warnf("解析标记 %q 中的属性 %q 时发生错误: %s (href: %s)", err, "href", "a", href)
 				return
 			}
 
@@ -254,7 +254,7 @@ func parseATag(httpResp *http.Response, respDepth uint32) ([]module.Data, []erro
 
 		item := module.Item(m)
 		dataList = append(dataList, item)
-		logger.DLogger().Infof("Processed item: %v", m)
+		log.DLogger().Infof("Processed item: %v", m)
 	})
 
 	return dataList, errs
