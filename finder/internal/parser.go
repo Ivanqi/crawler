@@ -18,23 +18,23 @@ func genResponseParsers() []module.ParseResponse {
 		dataList := make([]module.Data, 0)
 		// 检查响应。
 		if httpResp == nil {
-			return nil, []error{fmt.Errorf("nil HTTP response")}
+			return nil, []error{fmt.Errorf("无HTTP响应")}
 		}
 
 		httpReq := httpResp.Request
 		if httpReq == nil {
-			return nil, []error{fmt.Errorf("nil HTTP request")}
+			return nil, []error{fmt.Errorf("无HTTP请求")}
 		}
 
 		reqURL := httpReq.URL
 		if httpResp.StatusCode != 200 {
-			err := fmt.Errorf("unsupported status code %d (requestURL: %s)", httpResp.StatusCode, reqURL)
+			err := fmt.Errorf("不支持的状态代码 %d (requestURL: %s)", httpResp.StatusCode, reqURL)
 			return nil, []error{err}
 		}
 
 		body := httpResp.Body
 		if body == nil {
-			err := fmt.Errorf("nil HTTP response body (requestURL: %s)", reqURL)
+			err := fmt.Errorf("无HTTP响应体 (requestURL: %s)", reqURL)
 			return nil, []error{err}
 		}
 
@@ -77,8 +77,7 @@ func genResponseParsers() []module.ParseResponse {
 
 			aURL, err := url.Parse(href)
 			if err != nil {
-				logger.Warnf("An error occurs when parsing attribute %q in tag %q : %s (href: %s)",
-					err, "href", "a", href)
+				logger.Warnf("分析标记 %q 中的属性 %q 时出错: %s (href: %s)", err, "href", "a", href)
 				return
 			}
 

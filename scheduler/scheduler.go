@@ -81,7 +81,7 @@ func NewScheduler() Scheduler {
 
 func (sched *myScheduler) Init(requestArgs RequestArgs, dataArgs DataArgs, moduleArgs ModuleArgs) (err error) {
 	// 检查状态。
-	logger.Info("Check status for initialization...")
+	logger.Info("检查初始化状态...")
 
 	var oldStatus Status
 	oldStatus, err = sched.checkAndSetStatus(SCHED_STATUS_INITIALIZING)
@@ -100,26 +100,26 @@ func (sched *myScheduler) Init(requestArgs RequestArgs, dataArgs DataArgs, modul
 	}()
 
 	// 检查参数。
-	logger.Info("Check request arguments...")
+	logger.Info("检查请求参数...")
 	if err = requestArgs.Check(); err != nil {
 		return err
 	}
 
-	logger.Info("Check data arguments...")
+	logger.Info("检查数据参数...")
 	if err = dataArgs.Check(); err != nil {
 		return err
 	}
 
-	logger.Info("Data arguments are valid.")
-	logger.Info("Check module arguments...")
+	logger.Info("数据参数是有效的.")
+	logger.Info("检查模块参数...")
 
 	if err = moduleArgs.Check(); err != nil {
 		return err
 	}
 
-	logger.Info("Module arguments are valid.")
+	logger.Info("模块参数是有效的.")
 	// 初始化内部字段。
-	logger.Info("Initialize scheduler’s fields...")
+	logger.Info("初始化调度程序的字段...")
 	if sched.registrar == nil {
 		sched.registrar = module.NewRegistrar()
 	} else {
@@ -134,7 +134,7 @@ func (sched *myScheduler) Init(requestArgs RequestArgs, dataArgs DataArgs, modul
 		sched.acceptedDomainMap.Put(domain, struct{}{})
 	}
 
-	logger.Infof("-- Accepted primary domains: %v", requestArgs.AcceptedDomains)
+	logger.Infof("--接受的 domains: %v", requestArgs.AcceptedDomains)
 
 	sched.urlMap, _ = cmap.NewConcurrentMap(16, nil)
 	logger.Infof("-- URL map: length: %d, concurrency: %d", sched.urlMap.Len(), sched.urlMap.Concurrency())
@@ -144,12 +144,12 @@ func (sched *myScheduler) Init(requestArgs RequestArgs, dataArgs DataArgs, modul
 	sched.summary = newSchedSummary(requestArgs, dataArgs, moduleArgs, sched)
 
 	// 注册组件。
-	logger.Info("Register modules...")
+	logger.Info("注册模块...")
 	if err = sched.registerModules(moduleArgs); err != nil {
 		return err
 	}
 
-	logger.Info("Scheduler has been initialized.")
+	logger.Info("调度程序已初始化.")
 	return nil
 }
 

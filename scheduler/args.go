@@ -21,7 +21,7 @@ type RequestArgs struct {
 
 func (args *RequestArgs) Check() error {
 	if args.AcceptedDomains == nil {
-		return genError("nil accepted primary domain list")
+		return genError("无接受的域名列表")
 	}
 	return nil
 }
@@ -76,35 +76,35 @@ type DataArgs struct {
 
 func (args *DataArgs) Check() error {
 	if args.ReqBufferCap == 0 {
-		return genError("zero request buffer capacity")
+		return genError("零请求缓冲区容量")
 	}
 
 	if args.ReqMaxBufferNumber == 0 {
-		return genError("zero max request buffer number")
+		return genError("零最大请求缓冲区数")
 	}
 
 	if args.RespBufferCap == 0 {
-		return genError("zero response buffer capacity")
+		return genError("零响应缓冲容量")
 	}
 
 	if args.RespMaxBufferNumber == 0 {
-		return genError("zero max response buffer number")
+		return genError("零最大响应缓冲区数")
 	}
 
 	if args.ItemBufferCap == 0 {
-		return genError("zero item buffer capacity")
+		return genError("零项缓冲容量")
 	}
 
 	if args.ItemMaxBufferNumber == 0 {
-		return genError("zero max item buffer number")
+		return genError("零最大项目缓冲区编号")
 	}
 
 	if args.ErrorBufferCap == 0 {
-		return genError("zero error buffer capacity")
+		return genError("零错误缓冲容量")
 	}
 
 	if args.ErrorMaxBufferNumber == 0 {
-		return genError("zero max error buffer number")
+		return genError("零最大错误缓冲区数")
 	}
 
 	return nil
@@ -130,15 +130,15 @@ type ModuleArgs struct {
 // Check 用于当前参数容器的有效性
 func (args *ModuleArgs) Check() error {
 	if len(args.Downloaders) == 0 {
-		return genError("empty downloader list")
+		return genError("空下载器列表")
 	}
 
 	if len(args.Analyzers) == 0 {
-		return genError("empty analyzer list")
+		return genError("空分析器列表")
 	}
 
 	if len(args.Pipelines) == 0 {
-		return genError("empty pipeline list")
+		return genError("空条目列表")
 	}
 
 	return nil

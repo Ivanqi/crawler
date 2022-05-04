@@ -10,10 +10,8 @@ import (
 
 	lib "crawler/finder/internal"
 	"crawler/finder/monitor"
-
-	sched "crawler/scheduler"
-
 	log "crawler/logger"
+	sched "crawler/scheduler"
 )
 
 // 命令参数。
@@ -68,29 +66,29 @@ func main() {
 	}
 
 	dataArgs := sched.DataArgs{
-		ReqBufferCap:         50,
-		ReqMaxBufferNumber:   1000,
-		RespBufferCap:        50,
-		RespMaxBufferNumber:  10,
-		ItemBufferCap:        50,
-		ItemMaxBufferNumber:  100,
-		ErrorBufferCap:       50,
-		ErrorMaxBufferNumber: 1,
+		ReqBufferCap:         50,   // 代表请求缓冲器的容量
+		ReqMaxBufferNumber:   1000, // 代表请求缓冲器的最大数量
+		RespBufferCap:        50,   // 代表响应缓冲器的容量
+		RespMaxBufferNumber:  10,   // 代表响应缓冲器的最大数量
+		ItemBufferCap:        50,   // 代表条目缓冲器的容量
+		ItemMaxBufferNumber:  100,  // 代表条目缓冲器的最大数量
+		ErrorBufferCap:       50,   // 代表错误缓冲器的容量
+		ErrorMaxBufferNumber: 1,    // 代表错误缓冲器的最大数量
 	}
 
 	downloaders, err := lib.GetDownloaders(1)
 	if err != nil {
-		logger.Fatalf("An error occurs when creating downloaders: %s", err)
+		logger.Fatalf("创建下载程序时出错: %s", err)
 	}
 
 	analyzers, err := lib.GetAnalyzers(1)
 	if err != nil {
-		logger.Fatalf("An error occurs when creating analyzers: %s", err)
+		logger.Fatalf("创建分析器时出错: %s", err)
 	}
 
 	pipelines, err := lib.GetPipelines(1, dirPath)
 	if err != nil {
-		logger.Fatalf("An error occurs when creating pipelines: %s", err)
+		logger.Fatalf("创建管道时出错: %s", err)
 	}
 
 	moduleArgs := sched.ModuleArgs{
@@ -98,10 +96,11 @@ func main() {
 		Analyzers:   analyzers,
 		Pipelines:   pipelines,
 	}
+
 	// 初始化调度器。
 	err = scheduler.Init(requestArgs, dataArgs, moduleArgs)
 	if err != nil {
-		logger.Fatalf("An error occurs when initializing scheduler: %s", err)
+		logger.Fatalf("初始化计划程序时出错: %s", err)
 	}
 
 	// 准备监控参数。
@@ -120,7 +119,7 @@ func main() {
 	// 开启调度器
 	err = scheduler.Start(firstHTTPReq)
 	if err != nil {
-		logger.Fatalf("An error occurs when starting scheduler: %s", err)
+		logger.Fatalf("启动计划程序时出错: %s", err)
 	}
 
 	// 等待监控结束。

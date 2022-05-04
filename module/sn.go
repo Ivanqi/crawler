@@ -68,6 +68,10 @@ func (gen *mySNGenertor) CycleCount() uint64 {
 	return gen.cycleCount
 }
 
+/*
+	序列号获取
+		线程安全
+*/
 func (gen *mySNGenertor) Get() uint64 {
 	gen.lock.Lock()
 	defer gen.lock.Unlock()

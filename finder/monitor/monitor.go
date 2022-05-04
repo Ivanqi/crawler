@@ -44,16 +44,11 @@ type Record func(level uint8, content string)
 // 参数autoStop被用来指示该方法是否在调度器空闲足够长的时间之后自行停止调度器。
 // 参数record代表日志记录函数。
 // 当监控结束之后，该方法会向作为唯一结果值的通道发送一个代表了空闲状态检查次数的数值。
-func Monitor(
-	scheduler sched.Scheduler,
-	checkInterval time.Duration,
-	summarizeInterval time.Duration,
-	maxIdleCount uint,
-	autoStop bool,
-	record Record) <-chan uint64 {
+func Monitor(scheduler sched.Scheduler, checkInterval time.Duration, summarizeInterval time.Duration, maxIdleCount uint,
+	autoStop bool, record Record) <-chan uint64 {
 	// 防止调度器不可用。
 	if scheduler == nil {
-		panic(errors.New("The scheduler is invalid!"))
+		panic(errors.New("调度程序无效!"))
 	}
 
 	// 防止过小的检查间隔时间对爬取流程造成不良影响。
@@ -71,7 +66,7 @@ func Monitor(
 		maxIdleCount = 10
 	}
 
-	logger.Infof("Monitor parameters: checkInterval: %s, summarizeInterval: %s,"+
+	logger.Infof("监控参数: checkInterval: %s, summarizeInterval: %s,"+
 		" maxIdleCount: %d, autoStop: %v", checkInterval, summarizeInterval, maxIdleCount, autoStop)
 	// 生成监控停止通知器。
 	stopNotifier, stopFunc := context.WithCancel(context.Background())

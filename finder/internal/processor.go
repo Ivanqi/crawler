@@ -14,7 +14,7 @@ import (
 func genItemProcessors(dirPath string) []module.ProcessItem {
 	savePicture := func(item module.Item) (result module.Item, err error) {
 		if item == nil {
-			return nil, errors.New("invalid item!")
+			return nil, errors.New("无效项!")
 		}
 
 		// 检查和准备数据。
@@ -26,7 +26,7 @@ func genItemProcessors(dirPath string) []module.ProcessItem {
 		v := item["reader"]
 		reader, ok := v.(io.Reader)
 		if !ok {
-			return nil, fmt.Errorf("incorrect reader type: %T", v)
+			return nil, fmt.Errorf("读卡器类型不正确: %T", v)
 		}
 
 		readCloser, ok := reader.(io.ReadCloser)
@@ -37,7 +37,7 @@ func genItemProcessors(dirPath string) []module.ProcessItem {
 		v = item["name"]
 		name, ok := v.(string)
 		if !ok {
-			return nil, fmt.Errorf("incorrect name type: %T", v)
+			return nil, fmt.Errorf("名称类型不正确: %T", v)
 		}
 
 		// 创建图片文件。
@@ -45,7 +45,7 @@ func genItemProcessors(dirPath string) []module.ProcessItem {
 		filePath := filepath.Join(absDirPath, fileName)
 		file, err := os.Create(filePath)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't create file: %s (path: %s)", err, filePath)
+			return nil, fmt.Errorf("无法创建文件: %s (path: %s)", err, filePath)
 		}
 
 		defer file.Close()
@@ -75,13 +75,13 @@ func genItemProcessors(dirPath string) []module.ProcessItem {
 		v := item["file_path"]
 		path, ok := v.(string)
 		if !ok {
-			return nil, fmt.Errorf("incorrect file path type: %T", v)
+			return nil, fmt.Errorf("文件路径类型不正确: %T", v)
 		}
 
 		v = item["file_size"]
 		size, ok := v.(int64)
 		if !ok {
-			return nil, fmt.Errorf("incorrect file name type: %T", v)
+			return nil, fmt.Errorf("文件名类型不正确: %T", v)
 		}
 
 		logger.Infof("Saved file: %s, size: %d byte(s).", path, size)
